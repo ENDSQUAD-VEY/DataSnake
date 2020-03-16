@@ -1,6 +1,6 @@
 __author__ = "Lucas Brabo"
-__credits__ = ["Lucas Leal", "Gabriel Filippo"]
-__version__ = 1.0
+__credits__ = ["Gabriel Oliveira", "Victor Maller"]
+
 #Funcionalidade: Realizar o tratamento de dados recebidos via JSON do projeto END
 
 #----------------------------------------------------------------------------------------#

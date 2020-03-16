@@ -1,5 +1,5 @@
 __author__ = "Lucas Brabo"
-__version__ = 1.0
+
 
 ######## Import de Bots deve ser realizado no começo do código ########
 import os
