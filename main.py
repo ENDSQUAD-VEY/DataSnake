@@ -12,7 +12,8 @@ diretorio = "L:\\END\\PRD\\Files\\Python_END\\teste.csv"
 
 
 while row:
-    Remark, MatAprovAlt, Produto, MatAprov, Observacao, MotivoDaOrdem, EmissorDaOrdem, ValorCondicao, PrazoPag, CodigoMaterial, Quantidade, Centro, Email, AreaVenda, CanalDistrib  = [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
+    Remark, MatAprovAlt, Produto, MatAprov, Observacao, MotivoDaOrdem, EmissorDaOrdem, ValorCondicao, PrazoPag, CodigoMaterial, Quantidade, Centro, Email, AreaVenda, CanalDistrib, FormaPag  = [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
+    
     Remark = Remark + END.convertToArray(row.Remark)
     MatAprovAlt = MatAprovAlt + END.convertToArray(row.MatAprovAlt)
     Produto = Produto + END.convertToArray(row.Produto)
@@ -25,9 +26,12 @@ while row:
     CodigoMaterial = CodigoMaterial + END.convertToArray(row.CodigoMaterial)
     Quantidade = Quantidade + END.convertToArray(row.Quantidade)
     Centro = Centro + END.convertToArray(row.Centro)
+    Email2 = row.Email
     Email = Email + END.convertToArray(row.Email)
     AreaVenda = AreaVenda + END.convertToArray(row.AreaVenda)
     CanalDistrib = CanalDistrib + END.convertToArray(row.CanalDistrib)
+    FormaPag = FormaPag + END.convertToArray(row.FormaPag)
+    Error_DateTime = row.Error_DateTime
     identity = row.ID
     
     row = cursor.fetchone()
@@ -35,16 +39,20 @@ while row:
     json2 = {"Remark": Remark, "MatAprovAlt": MatAprovAlt, "Produto": Produto, "MatAprov": MatAprov,
             "Observacao": Observacao, "MotivoDaOrdem": MotivoDaOrdem, "EmissorDaOrdem": EmissorDaOrdem,
             "ValorCondicao": ValorCondicao, "PrazoPag": PrazoPag, "CodigoMaterial": CodigoMaterial,
-            "Quantidade": Quantidade, "Centro": Centro, "Email": Email, "AreaVenda": AreaVenda, "CanalDistrib": CanalDistrib
-            }
+            "Quantidade": Quantidade, "Centro": Centro, "Email": Email, "AreaVenda": AreaVenda, "CanalDistrib": CanalDistrib, "FormaPag": FormaPag}
+    
+    
+    
+    
+    
     END.cleanJson(json2)
     END.replicateEmail(json2, "Remark", "Email")
-    END.writeToCsv(diretorio, json2)
+    END.writeToCsv(diretorio, json2, Error_DateTime, Email2)
     cursorDelete.execute("DELETE from [dbo].[END_Temp] where ID = {}".format(identity))
     
 
 
 
-END.csvToDataBase(diretorio, "END_DB")
+END.csvToDataBase(diretorio, "END_DB", Error_DateTime, Email2)
 
 

@@ -88,7 +88,7 @@ def replicateEmail(dicionario, campoReferencia, campoReplicado):
         log.logErro('replicateEmail: Não conseguiu realizar a replicação de dados no Array', errorDescription, errorLine)
 
 
-def writeToCsv(fileName, dicionario):
+def writeToCsv(fileName, dicionario, Error_DateTime , Email2):
     #Esta função utiliza a biblioteca pandas para criar uma DataFrame a partir do dicionário e converter isso em csv
     log.logRastreio('writeToCsv: Começando a criação do DataFrame')
     #Realiza a criação do DataFrame a partir do dicionário
@@ -97,6 +97,8 @@ def writeToCsv(fileName, dicionario):
         log.logSucesso('writeToCsv: DataFrame criado com sucesso')
     except Exception as errorDescription:
         log.logErro('writeToCsv: Não conseguiu realizar a criação do DataFrame', errorDescription, errorLine)
+        errodescript = 'writeToCsv: Não conseguiu realizar a criação do DataFrame'
+        InsertIntoErrorTable(errodescript,Error_DateTime , Email2)
         return 1
 
     #Realiza a replicação dos dados a partir do DataFrame criado
@@ -113,8 +115,11 @@ def writeToCsv(fileName, dicionario):
         return 0
     except Exception as errorDescription:
         log.logErro('writeToCsv: Não conseguiu realizar a replicação do DataFrame para o csv', errorDescription, errorLine)
+        errodescript = 'Não conseguiu realizar a replicação do DataFrame para o csv'
+        InsertIntoErrorTable(errodescript,Error_DateTime , Email2)
         return 1
  
+
 
 def connectDataBase():
     #Esta função tem por finalidade conectar com o banco de dados
@@ -127,6 +132,25 @@ def connectDataBase():
     except Exception as errorDescription:
         log.logErro('connectDataBase: Não conseguiu realizar a conexão com o banco', errorDescription, errorLine)
         return 1
+
+
+def InsertIntoErrorTable(errorDescription, Error_DateTime, Email):
+    #Esta funcao tem a funcionalidade de inserir as exceptions na tabela de erro
+    Error_DateTime = Error_DateTime
+    log.logRastreio('InsertIntoErrorTable: Iniciando insersao da excessao na tabela de erro')
+    cursor = connectDataBase()
+    log.logRastreio('InsertIntoErrorTable: Buscando email do solicitante')
+    emailtest = Email
+    #Update da tabela de erro
+    error_datetime = Error_DateTime
+    descricaoerro = errorDescription 
+    params = [descricaoerro, emailtest, error_datetime]
+    log.logRastreio('InsertIntoErrorTable: Email do solicitante:', emailtest)
+    log.logRastreio('InsertIntoErrorTable: Realizando update de ERRO')
+    stmt = ("UPDATE END_ERROR_FORM SET Status_Python = 'ERRO', Error_Description = ? WHERE Email_Requester = ? AND Error_DateTime = ?")
+    cursor.execute(stmt, params)
+    
+    return 0
 
 def convertToArray(param):
     #COnverte dados para array já tratado
@@ -142,7 +166,7 @@ def convertToArray(param):
         log.logErro('convertToArray: Não conseguiu realizar a conversão do Array', errorDescription, errorLine)
         return 1
 
-def csvToDataBase(fileName, tableName):
+def csvToDataBase(fileName, tableName, Error_DateTime, Email2):
     #Funcionalidade: inserir os dados do csv passado como parâmetro para o banco de dados
     log.logRastreio('csvToDataBase: Começando a inserir os dados do CSV na base. Dados: {}'.format(fileName))
     cursor = connectDataBase()
@@ -168,16 +192,17 @@ def csvToDataBase(fileName, tableName):
                 Email = row[12]
                 AreaVenda = row[13]
                 CanalDistrib = row[14]
+                FormaPag = row[15]
                 if count == 1:
                     count = count + 1
                     continue
                 
                 #Montando o insert
                 qry = '''INSERT INTO {}(Remark,Matricula_do_Aprovador_Alternativo,Produto,Matricula_do_Aprovador,Observacao_da_Aprovacao,Motivo_da_Ordem,
-                Emissor_da_Ordem,Valor_Condicao,Prazo_de_Pagamento,Codigo_do_Material,Quantidade,Centro,Email_do_Solicitante,Area_de_Vendas,Canal_de_Distribuicao) 
-                values('{}','{}','{}','{}','{}','{}','{}','{}','{}','{}','{}','{}','{}','{}','{}')'''.format(tableName,Remark,MatAprovAlt,
+                Emissor_da_Ordem,Valor_Condicao,Prazo_de_Pagamento,Codigo_do_Material,Quantidade,Centro,Email_do_Solicitante,Area_de_Vendas,Canal_de_Distribuicao, Forma_de_Pagamento) 
+                values('{}','{}','{}','{}','{}','{}','{}','{}','{}','{}','{}','{}','{}','{}','{}','{}')'''.format(tableName,Remark,MatAprovAlt,
                 Produto,MatAprov,Observacao,MotivoDaOrdem,EmissorDaOrdem,ValorCondicao,PrazoPag,CodigoMaterial,Quantidade,
-                Centro,Email,AreaVenda,CanalDistrib)
+                Centro,Email,AreaVenda,CanalDistrib,FormaPag)
 
                 #Realizando o insert no banco
                 cursor.execute(qry)
@@ -186,5 +211,8 @@ def csvToDataBase(fileName, tableName):
 
     except Exception as errorDescription:
         log.logErro('csvToDataBase: Não conseguiu inserir os dados no banco', errorDescription, errorLine)
+        Error_DateTime = Error_DateTime
+        errodescript = 'Não conseguiu inserir os dados no banco'
+        InsertIntoErrorTable(errodescript, Error_DateTime, Email2)
         return 1
             
